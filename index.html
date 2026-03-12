@@ -6,13 +6,24 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <canvas id="game"></canvas>
 
-  <script src="js/engine.js"></script>
-  <script src="js/input.js"></script>
-  <script src="js/map.js"></script>
-  <script src="js/enemy.js"></script>
-  <script src="js/player.js"></script>
-  <script src="js/game.js"></script>
+  <div id="gameContainer">
+
+  <div id="hud">
+
+  <div id="vida">VIDA: 100</div>
+
+  <div id="missao">MISSÃO: INFILTRAR BASE</div>
+
+  </div>
+
+  <div id="alerta">!!! ALERTA !!!</div>
+
+  <canvas id="game" width="640" height="480"></canvas>
+
+  <div id="radar"></div>
+
+</div>
+
 </body>
 </html>
