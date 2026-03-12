@@ -1,25 +1,31 @@
 const enemies = [
 {
-  x: 320,
-  y: 96,
-  size: 24,
-  speed: 60,
-  direction: "down",
-  viewDistance: 160,
-
-  patrolPoints: [
-    {x:320, y:96},
-    {x:320, y:200},
-    {x:450, y:200},
-    {x:450, y:96}
-  ],
-
-  patrolIndex: 0,
-  state: "patrol",
-  shootCooldown: 0,
-  alerted: false
+  x: 200,
+  y: 200,
+  size: 32
 }
-];
+]
+
+function updateEnemies(delta){
+
+}
+
+function drawEnemies(){
+
+  enemies.forEach(enemy => {
+
+    ctx.fillStyle = "red"
+
+    ctx.fillRect(
+      enemy.x,
+      enemy.y,
+      enemy.size,
+      enemy.size
+    )
+
+  })
+
+}
 
 function updateEnemies(delta){
 
