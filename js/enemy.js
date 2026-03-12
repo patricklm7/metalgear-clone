@@ -2,9 +2,24 @@ const enemies = [
 {
   x: 200,
   y: 200,
-  size: 32
+  size: 24,
+
+  speed: 60,
+  direction: "down",
+
+  viewDistance: 120,
+
+  patrolPoints:[
+    {x:200,y:200},
+    {x:400,y:200}
+  ],
+
+  patrolIndex:0,
+  state:"patrol",
+  shootCooldown:0,
+  alerted:false
 }
-]
+];
 
 function updateEnemies(delta){
 
