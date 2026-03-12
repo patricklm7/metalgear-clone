@@ -4,9 +4,7 @@ const enemies = [
   y: 96,
   size: 24,
   speed: 60,
-
   direction: "down",
-
   viewDistance: 160,
 
   patrolPoints: [
@@ -17,10 +15,9 @@ const enemies = [
   ],
 
   patrolIndex: 0,
-
   state: "patrol",
-
-  shootCooldown: 0
+  shootCooldown: 0,
+  alerted: false
 }
 ];
 
@@ -34,11 +31,14 @@ function updateEnemies(delta){
 
       if(canSeePlayer(enemy)){
         enemy.state = "alert"
+        enemy.alerted = true
       }
 
     }
 
     if(enemy.state === "alert"){
+
+      enemy.alerted = true
 
       attackPlayer(enemy, delta)
 
@@ -49,13 +49,17 @@ function updateEnemies(delta){
 }
 
 function drawEnemies() {
+
   enemies.forEach(enemy => {
-    // Inimigo
-    ctx.fillStyle = enemy.alerted ? "red" : "yellow";
+
+    ctx.fillStyle = enemy.state === "alert" ? "red" : "yellow";
+
     ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
 
     drawVisionCone(enemy);
+
   });
+
 }
 
 function canSeePlayer(enemy) {
