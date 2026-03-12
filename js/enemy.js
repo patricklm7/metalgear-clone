@@ -2,9 +2,10 @@ const enemies = [
 {
   x: 200,
   y: 200,
-  size: 24,
 
+  size: 24,
   speed: 60,
+
   direction: "down",
 
   viewDistance: 120,
@@ -15,32 +16,16 @@ const enemies = [
   ],
 
   patrolIndex:0,
+
   state:"patrol",
+
   shootCooldown:0,
+
   alerted:false
 }
-];
+]
 
-function updateEnemies(delta){
-
-}
-
-function drawEnemies(){
-
-  enemies.forEach(enemy => {
-
-    ctx.fillStyle = "red"
-
-    ctx.fillRect(
-      enemy.x,
-      enemy.y,
-      enemy.size,
-      enemy.size
-    )
-
-  })
-
-}
+const bullets = []
 
 function updateEnemies(delta){
 
@@ -59,8 +44,6 @@ function updateEnemies(delta){
 
     if(enemy.state === "alert"){
 
-      enemy.alerted = true
-
       attackPlayer(enemy, delta)
 
     }
@@ -69,103 +52,23 @@ function updateEnemies(delta){
 
 }
 
-function drawEnemies() {
+function drawEnemies(){
 
   enemies.forEach(enemy => {
 
-    ctx.fillStyle = enemy.state === "alert" ? "red" : "yellow";
+    ctx.fillStyle = enemy.state === "alert" ? "red" : "yellow"
 
-    ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
+    ctx.fillRect(
+      enemy.x,
+      enemy.y,
+      enemy.size,
+      enemy.size
+    )
 
-    drawVisionCone(enemy);
+    drawVisionCone(enemy)
 
-  });
+  })
 
-}
-
-function canSeePlayer(enemy) {
-  const px = player.x + player.size / 2;
-  const py = player.y + player.size / 2;
-
-  const ex = enemy.x + enemy.size / 2;
-  const ey = enemy.y + enemy.size / 2;
-
-  let inCone = false;
-
-  if (enemy.direction === "up") {
-    inCone =
-      px > ex - 32 &&
-      px < ex + 32 &&
-      py < ey &&
-      ey - py < enemy.viewDistance;
-  }
-
-  if (enemy.direction === "down") {
-    inCone =
-      px > ex - 32 &&
-      px < ex + 32 &&
-      py > ey &&
-      py - ey < enemy.viewDistance;
-  }
-
-  if (enemy.direction === "left") {
-    inCone =
-      py > ey - 32 &&
-      py < ey + 32 &&
-      px < ex &&
-      ex - px < enemy.viewDistance;
-  }
-
-  if (enemy.direction === "right") {
-    inCone =
-      py > ey - 32 &&
-      py < ey + 32 &&
-      px > ex &&
-      px - ex < enemy.viewDistance;
-  }
-
-  return inCone;
-}
-
-function drawVisionCone(enemy) {
-  ctx.fillStyle = enemy.alerted
-    ? "rgba(255,0,0,0.3)"
-    : "rgba(255,255,0,0.2)";
-
-  let x = enemy.x;
-  let y = enemy.y;
-  let w = 0;
-  let h = 0;
-
-  if (enemy.direction === "up") {
-    x -= 32;
-    y -= enemy.viewDistance;
-    w = enemy.size + 64;
-    h = enemy.viewDistance;
-  }
-
-  if (enemy.direction === "down") {
-    x -= 32;
-    y += enemy.size;
-    w = enemy.size + 64;
-    h = enemy.viewDistance;
-  }
-
-  if (enemy.direction === "left") {
-    x -= enemy.viewDistance;
-    y -= 32;
-    w = enemy.viewDistance;
-    h = enemy.size + 64;
-  }
-
-  if (enemy.direction === "right") {
-    x += enemy.size;
-    y -= 32;
-    w = enemy.viewDistance;
-    h = enemy.size + 64;
-  }
-
-  ctx.fillRect(x, y, w, h);
 }
 
 function patrolEnemy(enemy, delta){
@@ -178,9 +81,14 @@ function patrolEnemy(enemy, delta){
   const dist = Math.sqrt(dx*dx + dy*dy)
 
   if(dist < 2){
+
     enemy.patrolIndex++
-    if(enemy.patrolIndex >= enemy.patrolPoints.length)
+
+    if(enemy.patrolIndex >= enemy.patrolPoints.length){
       enemy.patrolIndex = 0
+    }
+
+    return
   }
 
   enemy.x += (dx/dist) * enemy.speed * delta
@@ -188,13 +96,102 @@ function patrolEnemy(enemy, delta){
 
   if(Math.abs(dx) > Math.abs(dy)){
     enemy.direction = dx > 0 ? "right" : "left"
-  } else {
+  }else{
     enemy.direction = dy > 0 ? "down" : "up"
   }
 
 }
 
-const bullets = [];
+function canSeePlayer(enemy){
+
+  const px = player.x + player.size/2
+  const py = player.y + player.size/2
+
+  const ex = enemy.x + enemy.size/2
+  const ey = enemy.y + enemy.size/2
+
+  if(enemy.direction === "up"){
+    return (
+      px > ex-32 &&
+      px < ex+32 &&
+      py < ey &&
+      ey - py < enemy.viewDistance
+    )
+  }
+
+  if(enemy.direction === "down"){
+    return (
+      px > ex-32 &&
+      px < ex+32 &&
+      py > ey &&
+      py - ey < enemy.viewDistance
+    )
+  }
+
+  if(enemy.direction === "left"){
+    return (
+      py > ey-32 &&
+      py < ey+32 &&
+      px < ex &&
+      ex - px < enemy.viewDistance
+    )
+  }
+
+  if(enemy.direction === "right"){
+    return (
+      py > ey-32 &&
+      py < ey+32 &&
+      px > ex &&
+      px - ex < enemy.viewDistance
+    )
+  }
+
+  return false
+
+}
+
+function drawVisionCone(enemy){
+
+  ctx.fillStyle = enemy.alerted
+    ? "rgba(255,0,0,0.3)"
+    : "rgba(255,255,0,0.2)"
+
+  let x = enemy.x
+  let y = enemy.y
+  let w = 0
+  let h = 0
+
+  if(enemy.direction === "up"){
+    x -= 32
+    y -= enemy.viewDistance
+    w = enemy.size + 64
+    h = enemy.viewDistance
+  }
+
+  if(enemy.direction === "down"){
+    x -= 32
+    y += enemy.size
+    w = enemy.size + 64
+    h = enemy.viewDistance
+  }
+
+  if(enemy.direction === "left"){
+    x -= enemy.viewDistance
+    y -= 32
+    w = enemy.viewDistance
+    h = enemy.size + 64
+  }
+
+  if(enemy.direction === "right"){
+    x += enemy.size
+    y -= 32
+    w = enemy.viewDistance
+    h = enemy.size + 64
+  }
+
+  ctx.fillRect(x,y,w,h)
+
+}
 
 function attackPlayer(enemy, delta){
 
@@ -205,14 +202,17 @@ function attackPlayer(enemy, delta){
 
   const dist = Math.sqrt(dx*dx + dy*dy)
 
-  enemy.x += (dx/dist) * enemy.speed * delta
-  enemy.y += (dy/dist) * enemy.speed * delta
+  if(dist > 0){
+    enemy.x += (dx/dist) * enemy.speed * delta
+    enemy.y += (dy/dist) * enemy.speed * delta
+  }
 
   if(enemy.shootCooldown <= 0){
 
     shoot(enemy)
 
     enemy.shootCooldown = 1.5
+
   }
 
 }
@@ -229,6 +229,8 @@ function shoot(enemy){
   const dy = py - ey
 
   const dist = Math.sqrt(dx*dx + dy*dy)
+
+  if(dist === 0) return
 
   bullets.push({
 
@@ -261,7 +263,12 @@ function drawBullets(){
 
   bullets.forEach(b => {
 
-    ctx.fillRect(b.x, b.y, b.size, b.size)
+    ctx.fillRect(
+      b.x,
+      b.y,
+      b.size,
+      b.size
+    )
 
   })
 
