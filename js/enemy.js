@@ -1,18 +1,51 @@
 const enemies = [
-  {
-    x: 320,
-    y: 96,
-    size: 24,
-    direction: "down",
-    viewDistance: 160,
-    alerted: false
-  }
+{
+  x: 320,
+  y: 96,
+  size: 24,
+  speed: 60,
+
+  direction: "down",
+
+  viewDistance: 160,
+
+  patrolPoints: [
+    {x:320, y:96},
+    {x:320, y:200},
+    {x:450, y:200},
+    {x:450, y:96}
+  ],
+
+  patrolIndex: 0,
+
+  state: "patrol",
+
+  shootCooldown: 0
+}
 ];
 
-function updateEnemies() {
+function updateEnemies(delta){
+
   enemies.forEach(enemy => {
-    enemy.alerted = canSeePlayer(enemy);
-  });
+
+    if(enemy.state === "patrol"){
+
+      patrolEnemy(enemy, delta)
+
+      if(canSeePlayer(enemy)){
+        enemy.state = "alert"
+      }
+
+    }
+
+    if(enemy.state === "alert"){
+
+      attackPlayer(enemy, delta)
+
+    }
+
+  })
+
 }
 
 function drawEnemies() {
@@ -108,4 +141,103 @@ function drawVisionCone(enemy) {
   }
 
   ctx.fillRect(x, y, w, h);
+}
+
+function patrolEnemy(enemy, delta){
+
+  const target = enemy.patrolPoints[enemy.patrolIndex]
+
+  const dx = target.x - enemy.x
+  const dy = target.y - enemy.y
+
+  const dist = Math.sqrt(dx*dx + dy*dy)
+
+  if(dist < 2){
+    enemy.patrolIndex++
+    if(enemy.patrolIndex >= enemy.patrolPoints.length)
+      enemy.patrolIndex = 0
+  }
+
+  enemy.x += (dx/dist) * enemy.speed * delta
+  enemy.y += (dy/dist) * enemy.speed * delta
+
+  if(Math.abs(dx) > Math.abs(dy)){
+    enemy.direction = dx > 0 ? "right" : "left"
+  } else {
+    enemy.direction = dy > 0 ? "down" : "up"
+  }
+
+}
+
+const bullets = [];
+
+function attackPlayer(enemy, delta){
+
+  enemy.shootCooldown -= delta
+
+  const dx = player.x - enemy.x
+  const dy = player.y - enemy.y
+
+  const dist = Math.sqrt(dx*dx + dy*dy)
+
+  enemy.x += (dx/dist) * enemy.speed * delta
+  enemy.y += (dy/dist) * enemy.speed * delta
+
+  if(enemy.shootCooldown <= 0){
+
+    shoot(enemy)
+
+    enemy.shootCooldown = 1.5
+  }
+
+}
+
+function shoot(enemy){
+
+  const px = player.x + player.size/2
+  const py = player.y + player.size/2
+
+  const ex = enemy.x + enemy.size/2
+  const ey = enemy.y + enemy.size/2
+
+  const dx = px - ex
+  const dy = py - ey
+
+  const dist = Math.sqrt(dx*dx + dy*dy)
+
+  bullets.push({
+
+    x: ex,
+    y: ey,
+
+    vx: dx/dist * 300,
+    vy: dy/dist * 300,
+
+    size: 6
+
+  })
+
+}
+
+function updateBullets(delta){
+
+  bullets.forEach(b => {
+
+    b.x += b.vx * delta
+    b.y += b.vy * delta
+
+  })
+
+}
+
+function drawBullets(){
+
+  ctx.fillStyle = "orange"
+
+  bullets.forEach(b => {
+
+    ctx.fillRect(b.x, b.y, b.size, b.size)
+
+  })
+
 }
