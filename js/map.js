@@ -1,17 +1,7 @@
 const TILE_SIZE = 32;
 
-/*
-Canvas: 640 x 480
-Tile: 32
-
-640 / 32 = 20 colunas
-480 / 32 = 15 linhas
-*/
-
 const map = [
-
 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-
 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
@@ -25,41 +15,22 @@ const map = [
 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-
 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-
 ];
 
 function drawMap() {
-
   for (let y = 0; y < map.length; y++) {
-
     for (let x = 0; x < map[y].length; x++) {
-
-      if (map[y][x] === 1) {
-        ctx.fillStyle = "#333";
-      } else {
-        ctx.fillStyle = "#111";
-      }
-
-      ctx.fillRect(
-        x * TILE_SIZE,
-        y * TILE_SIZE,
-        TILE_SIZE,
-        TILE_SIZE
-      );
-
+      ctx.fillStyle = map[y][x] === 1 ? "#333" : "#111";
+      ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
     }
-
   }
-
 }
 
 function isWall(x, y) {
-
   const tileX = Math.floor(x / TILE_SIZE);
   const tileY = Math.floor(y / TILE_SIZE);
-
-  return map[tileY]?.[tileX] === 1;
-
+  if (tileY < 0 || tileY >= map.length) return true;
+  if (tileX < 0 || tileX >= map[0].length) return true;
+  return map[tileY][tileX] === 1;
 }
