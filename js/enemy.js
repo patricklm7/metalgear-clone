@@ -13,14 +13,20 @@ const enemies = [
     patrolIndex:0,
     state:"patrol",
     shootCooldown:0,
-    alerted:false
+    alerted:false,
+    health: 50
   }
 ];
 
 const bullets = [];
 
+function rectsOverlap(ax, ay, aw, ah, bx, by, bw, bh){
+  return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+}
+
 function updateEnemies(delta){
-  enemies.forEach(enemy => {
+  for (let i = enemies.length - 1; i >= 0; i--){
+    const enemy = enemies[i];
     if(enemy.state === "patrol"){
       patrolEnemy(enemy, delta);
       if(canSeePlayer(enemy)){
@@ -30,7 +36,7 @@ function updateEnemies(delta){
     } else if(enemy.state === "alert"){
       attackPlayer(enemy, delta);
     }
-  });
+  }
 }
 
 function drawEnemies(){
@@ -65,7 +71,6 @@ function canSeePlayer(enemy){
   const py = player.y + player.size/2;
   const ex = enemy.x + enemy.size/2;
   const ey = enemy.y + enemy.size/2;
-
   if(enemy.direction === "up"){
     return px > ex-32 && px < ex+32 && py < ey && (ey - py) < enemy.viewDistance;
   }
@@ -140,7 +145,8 @@ function shoot(enemy){
     y: ey,
     vx: dx/dist * 300,
     vy: dy/dist * 300,
-    size: 6
+    size: 6,
+    owner: "enemy"
   });
 }
 
@@ -149,6 +155,30 @@ function updateBullets(delta){
     const b = bullets[i];
     b.x += b.vx * delta;
     b.y += b.vy * delta;
+    if (b.owner === "enemy"){
+      if (player.invuln <= 0 && rectsOverlap(b.x, b.y, b.size, b.size, player.x, player.y, player.size, player.size)){
+        player.health -= 15;
+        player.invuln = player.invulnDuration;
+        bullets.splice(i,1);
+        if (player.health <= 0){
+          player.health = 0;
+        }
+        continue;
+      }
+    } else if (b.owner === "player"){
+      for (let j = enemies.length - 1; j >= 0; j--){
+        const en = enemies[j];
+        if (rectsOverlap(b.x, b.y, b.size, b.size, en.x, en.y, en.size, en.size)){
+          en.health -= 25;
+          bullets.splice(i,1);
+          if (en.health <= 0){
+            enemies.splice(j,1);
+          }
+          break;
+        }
+      }
+      if (!bullets[i]) continue;
+    }
     if (b.x < -50 || b.x > canvas.width + 50 || b.y < -50 || b.y > canvas.height + 50){
       bullets.splice(i,1);
     }
@@ -156,8 +186,8 @@ function updateBullets(delta){
 }
 
 function drawBullets(){
-  ctx.fillStyle = "orange";
   bullets.forEach(b => {
+    ctx.fillStyle = b.owner === "enemy" ? "orange" : "cyan";
     ctx.fillRect(Math.floor(b.x), Math.floor(b.y), b.size, b.size);
   });
 }
