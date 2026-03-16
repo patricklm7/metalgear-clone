@@ -1,3 +1,6 @@
+const playerSprite = new Image()
+playerSprite.src = "assets/player.png"
+
 const player = {
   x: 64,
   y: 64,
@@ -75,15 +78,23 @@ function playerShoot(){
   });
 }
 
-function drawPlayer() {
-  if (player.invuln > 0) {
-    const flash = Math.floor(player.invuln * 10) % 2 === 0;
-    if (!flash) {
-      ctx.fillStyle = "#0f0";
-      ctx.fillRect(Math.floor(player.x), Math.floor(player.y), player.size, player.size);
-    }
-  } else {
-    ctx.fillStyle = "#0f0";
-    ctx.fillRect(Math.floor(player.x), Math.floor(player.y), player.size, player.size);
-  }
+function drawPlayer(){
+
+  let frameX = 0
+
+  if(player.direction === "down") frameX = 0
+  if(player.direction === "up") frameX = 32
+  if(player.direction === "left") frameX = 64
+  if(player.direction === "right") frameX = 96
+
+  ctx.drawImage(
+    playerSprite,
+    frameX,0,
+    32,32,
+    player.x,
+    player.y,
+    player.size,
+    player.size
+  )
+
 }
