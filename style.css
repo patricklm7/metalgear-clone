@@ -69,10 +69,13 @@ canvas{
 
     display:flex;
     justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
 
     background:rgba(0,0,0,0.6);
 
-    font-size:14px;
+    font-size:12px;
 
 }
 
@@ -90,6 +93,8 @@ canvas{
 #missao{
 
     color:#00ccff;
+    text-align:right;
+    flex:1;
 }
 
 

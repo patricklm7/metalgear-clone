@@ -3,10 +3,19 @@ const ALERT_STATE = {
   ALERT: "alert"
 };
 
+const ENEMY_TYPE = {
+  GUARD: "guard",
+  DOG: "dog"
+};
+
 const enemies = [
-  createEnemy(200, 200, [{ x: 200, y: 200 }, { x: 500, y: 200 }]),
-  createEnemy(700, 320, [{ x: 700, y: 320 }, { x: 700, y: 460 }]),
-  createEnemy(420, 500, [{ x: 420, y: 500 }, { x: 620, y: 500 }])
+  createEnemy(200, 200, [{ x: 200, y: 200 }, { x: 500, y: 200 }], { direction: "right" }),
+  createEnemy(700, 320, [{ x: 700, y: 320 }, { x: 700, y: 460 }], { direction: "down" }),
+  createEnemy(420, 500, [{ x: 420, y: 500 }, { x: 620, y: 500 }], { direction: "right" }),
+  createEnemy(900, 120, [{ x: 900, y: 120 }, { x: 1180, y: 120 }], { direction: "right" }),
+  createEnemy(1180, 180, [{ x: 1180, y: 180 }, { x: 1180, y: 420 }], { direction: "down" }),
+  createEnemy(1020, 520, [{ x: 1020, y: 520 }, { x: 1200, y: 520 }], { type: ENEMY_TYPE.DOG, speed: 175, viewDistance: 220, viewWidth: 58, color: "#ff9933", alertColor: "#ff5500", direction: "right" }),
+  createEnemy(1280, 520, [{ x: 1280, y: 520 }, { x: 1280, y: 260 }], { type: ENEMY_TYPE.DOG, speed: 175, viewDistance: 220, viewWidth: 58, color: "#ff9933", alertColor: "#ff5500", direction: "up" })
 ];
 
 const bullets = [];
@@ -16,20 +25,26 @@ const alertSystem = {
   duration: 3
 };
 
-function createEnemy(x, y, patrolPoints) {
+function createEnemy(x, y, patrolPoints, options) {
+  const settings = options || {};
+
   return {
     x: x,
     y: y,
-    size: 24,
-    speed: 60,
-    direction: "down",
-    viewDistance: 150,
+    size: settings.size || 24,
+    speed: settings.speed || 60,
+    direction: settings.direction || "down",
+    viewDistance: settings.viewDistance || 150,
+    viewWidth: settings.viewWidth || 36,
     patrolPoints: patrolPoints,
     patrolIndex: 0,
     state: ALERT_STATE.PATROL,
     shootCooldown: 0,
     alerted: false,
-    health: 50
+    health: settings.health || 50,
+    type: settings.type || ENEMY_TYPE.GUARD,
+    color: settings.color || "yellow",
+    alertColor: settings.alertColor || "red"
   };
 }
 
@@ -55,10 +70,34 @@ function updateEnemies(delta) {
 
 function drawEnemies() {
   enemies.forEach(enemy => {
-    ctx.fillStyle = enemy.state === ALERT_STATE.ALERT ? "red" : "yellow";
-    ctx.fillRect(Math.floor(enemy.x), Math.floor(enemy.y), enemy.size, enemy.size);
     drawVisionCone(enemy);
+
+    if (enemy.type === ENEMY_TYPE.DOG) {
+      drawDog(enemy);
+      return;
+    }
+
+    ctx.fillStyle = enemy.state === ALERT_STATE.ALERT ? enemy.alertColor : enemy.color;
+    ctx.fillRect(Math.floor(enemy.x), Math.floor(enemy.y), enemy.size, enemy.size);
   });
+}
+
+function drawDog(enemy) {
+  const x = Math.floor(enemy.x);
+  const y = Math.floor(enemy.y);
+  const bodyWidth = enemy.size;
+  const bodyHeight = Math.max(10, enemy.size - 8);
+  const bodyY = y + Math.floor((enemy.size - bodyHeight) / 2);
+
+  ctx.fillStyle = enemy.state === ALERT_STATE.ALERT ? enemy.alertColor : enemy.color;
+  ctx.fillRect(x, bodyY, bodyWidth, bodyHeight);
+  ctx.fillRect(x + bodyWidth - 4, bodyY + 2, 6, 6);
+
+  const legY = bodyY + bodyHeight;
+  ctx.fillRect(x + 2, legY - 1, 3, 7);
+  ctx.fillRect(x + 8, legY - 1, 3, 7);
+  ctx.fillRect(x + bodyWidth - 10, legY - 1, 3, 7);
+  ctx.fillRect(x + bodyWidth - 4, legY - 1, 3, 7);
 }
 
 function patrolEnemy(enemy, delta) {
@@ -81,51 +120,54 @@ function canSeePlayer(enemy) {
   const py = player.y + player.size / 2;
   const ex = enemy.x + enemy.size / 2;
   const ey = enemy.y + enemy.size / 2;
+  const viewWidth = enemy.viewWidth;
 
   if (enemy.direction === "up") {
-    return px > ex - 36 && px < ex + 36 && py < ey && (ey - py) < enemy.viewDistance;
+    return px > ex - viewWidth && px < ex + viewWidth && py < ey && (ey - py) < enemy.viewDistance;
   }
   if (enemy.direction === "down") {
-    return px > ex - 36 && px < ex + 36 && py > ey && (py - ey) < enemy.viewDistance;
+    return px > ex - viewWidth && px < ex + viewWidth && py > ey && (py - ey) < enemy.viewDistance;
   }
   if (enemy.direction === "left") {
-    return py > ey - 36 && py < ey + 36 && px < ex && (ex - px) < enemy.viewDistance;
+    return py > ey - viewWidth && py < ey + viewWidth && px < ex && (ex - px) < enemy.viewDistance;
   }
   if (enemy.direction === "right") {
-    return py > ey - 36 && py < ey + 36 && px > ex && (px - ex) < enemy.viewDistance;
+    return py > ey - viewWidth && py < ey + viewWidth && px > ex && (px - ex) < enemy.viewDistance;
   }
 
   return false;
 }
 
 function drawVisionCone(enemy) {
-  ctx.fillStyle = enemy.alerted ? "rgba(255,0,0,0.3)" : "rgba(255,255,0,0.2)";
+  const alpha = enemy.type === ENEMY_TYPE.DOG ? 0.28 : 0.2;
+  ctx.fillStyle = enemy.alerted ? "rgba(255,0,0,0.3)" : `rgba(255,255,0,${alpha})`;
 
   let x = enemy.x;
   let y = enemy.y;
   let w = 0;
   let h = 0;
+  const viewPad = enemy.viewWidth - 4;
 
   if (enemy.direction === "up") {
-    x -= 32;
+    x -= viewPad;
     y -= enemy.viewDistance;
-    w = enemy.size + 64;
+    w = enemy.size + viewPad * 2;
     h = enemy.viewDistance;
   } else if (enemy.direction === "down") {
-    x -= 32;
+    x -= viewPad;
     y += enemy.size;
-    w = enemy.size + 64;
+    w = enemy.size + viewPad * 2;
     h = enemy.viewDistance;
   } else if (enemy.direction === "left") {
     x -= enemy.viewDistance;
-    y -= 32;
+    y -= viewPad;
     w = enemy.viewDistance;
-    h = enemy.size + 64;
+    h = enemy.size + viewPad * 2;
   } else if (enemy.direction === "right") {
     x += enemy.size;
-    y -= 32;
+    y -= viewPad;
     w = enemy.viewDistance;
-    h = enemy.size + 64;
+    h = enemy.size + viewPad * 2;
   }
 
   ctx.fillRect(Math.floor(x), Math.floor(y), Math.floor(w), Math.floor(h));
@@ -151,7 +193,7 @@ function attackPlayer(enemy, delta) {
     moveEntityWithWalls(enemy, (dx / dist) * enemy.speed * delta, (dy / dist) * enemy.speed * delta);
   }
 
-  if (enemy.shootCooldown <= 0) {
+  if (enemy.type !== ENEMY_TYPE.DOG && enemy.shootCooldown <= 0) {
     shoot(enemy);
     enemy.shootCooldown = 1.5;
   }

@@ -3,7 +3,7 @@ function update(delta) {
   updateEnemies(delta);
   updateBullets(delta);
   updateAlertSystem(delta);
-  updateCamera();
+  updateCamera(delta);
   updateHud();
 }
 
@@ -18,16 +18,23 @@ function render() {
   endCamera();
 
   drawRadar();
+  drawScreenTransition();
 }
 
 function updateHud() {
   const alertaEl = document.getElementById("alerta");
-  if (!alertaEl) return;
+  const missaoEl = document.getElementById("missao");
+  if (alertaEl) {
+    if (alertSystem.active) {
+      alertaEl.classList.add("alertaAtivo");
+    } else {
+      alertaEl.classList.remove("alertaAtivo");
+    }
+  }
 
-  if (alertSystem.active) {
-    alertaEl.classList.add("alertaAtivo");
-  } else {
-    alertaEl.classList.remove("alertaAtivo");
+  if (missaoEl) {
+    const dogsAlive = enemies.filter(enemy => enemy.type === ENEMY_TYPE.DOG).length;
+    missaoEl.innerText = `MISSÃO: INFILTRAR BASE | TELA ${camera.screenY * Math.max(1, Math.ceil(getMapPixelWidth() / camera.width)) + camera.screenX + 1} | CÃES ${dogsAlive}`;
   }
 }
 
@@ -42,13 +49,14 @@ function drawRadar() {
   const dots = [];
 
   const p = worldToRadar(player.x + player.size / 2, player.y + player.size / 2);
-  dots.push(`<div style="position:absolute;left:${Math.floor(p.x * miniSize) - 3}px;top:${Math.floor(p.y * miniSize) - 3}px;width:6px;height:6px;background:#0f0;"></div>`);
+  dots.push(`<div style="position:absolute;left:${Math.floor(p.x * miniSize) - 3}px;top:${Math.floor(p.y * miniSize) - 3}px;width:6px;height:6px;border-radius:50%;background:#0f0;"></div>`);
 
   for (let i = 0; i < enemies.length; i++) {
     const e = enemies[i];
     const er = worldToRadar(e.x + e.size / 2, e.y + e.size / 2);
-    const color = e.state === ALERT_STATE.ALERT ? "#f00" : "#ff0";
-    dots.push(`<div style="position:absolute;left:${Math.floor(er.x * miniSize) - 2}px;top:${Math.floor(er.y * miniSize) - 2}px;width:4px;height:4px;background:${color};"></div>`);
+    const color = e.type === ENEMY_TYPE.DOG ? "#ff7b00" : (e.state === ALERT_STATE.ALERT ? "#f00" : "#ff0");
+    const size = e.type === ENEMY_TYPE.DOG ? 6 : 4;
+    dots.push(`<div style="position:absolute;left:${Math.floor(er.x * miniSize) - Math.floor(size / 2)}px;top:${Math.floor(er.y * miniSize) - Math.floor(size / 2)}px;width:${size}px;height:${size}px;border-radius:50%;background:${color};"></div>`);
   }
 
   const cameraX = Math.floor(camera.x * scaleX);

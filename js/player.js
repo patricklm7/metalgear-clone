@@ -68,14 +68,19 @@ function playerShoot() {
 }
 
 function drawPlayer() {
-  if (player.invuln > 0) {
-    const flash = Math.floor(player.invuln * 10) % 2 === 0;
-    if (!flash) {
-      ctx.fillStyle = "#0f0";
-      ctx.fillRect(Math.floor(player.x), Math.floor(player.y), player.size, player.size);
-    }
-  } else {
-    ctx.fillStyle = "#0f0";
-    ctx.fillRect(Math.floor(player.x), Math.floor(player.y), player.size, player.size);
-  }
+  const visible = player.invuln <= 0 || Math.floor(player.invuln * 10) % 2 === 0;
+  if (!visible) return;
+
+  const centerX = Math.floor(player.x + player.size / 2);
+  const centerY = Math.floor(player.y + player.size / 2);
+
+  ctx.fillStyle = "#00ff66";
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = "rgba(0, 255, 102, 0.35)";
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, 9, 0, Math.PI * 2);
+  ctx.stroke();
 }
