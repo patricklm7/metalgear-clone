@@ -43,11 +43,12 @@ function updateEnemies(delta) {
 
     if (enemy.state === ALERT_STATE.PATROL) {
       patrolEnemy(enemy, delta);
-      if (canSeePlayer(enemy)) {
-        setGlobalAlert();
-      }
     } else {
       attackPlayer(enemy, delta);
+    }
+
+    if (canSeePlayer(enemy)) {
+      setGlobalAlert();
     }
   }
 }
@@ -72,12 +73,7 @@ function patrolEnemy(enemy, delta) {
   }
 
   moveEntityWithWalls(enemy, (dx / dist) * enemy.speed * delta, (dy / dist) * enemy.speed * delta);
-
-  if (Math.abs(dx) > Math.abs(dy)) {
-    enemy.direction = dx > 0 ? "right" : "left";
-  } else {
-    enemy.direction = dy > 0 ? "down" : "up";
-  }
+  updateEnemyDirection(enemy, dx, dy);
 }
 
 function canSeePlayer(enemy) {
@@ -135,6 +131,14 @@ function drawVisionCone(enemy) {
   ctx.fillRect(Math.floor(x), Math.floor(y), Math.floor(w), Math.floor(h));
 }
 
+function updateEnemyDirection(enemy, dx, dy) {
+  if (Math.abs(dx) > Math.abs(dy)) {
+    enemy.direction = dx > 0 ? "right" : "left";
+  } else {
+    enemy.direction = dy > 0 ? "down" : "up";
+  }
+}
+
 function attackPlayer(enemy, delta) {
   enemy.shootCooldown -= delta;
 
@@ -143,6 +147,7 @@ function attackPlayer(enemy, delta) {
   const dist = Math.sqrt(dx * dx + dy * dy);
 
   if (dist > 0) {
+    updateEnemyDirection(enemy, dx, dy);
     moveEntityWithWalls(enemy, (dx / dist) * enemy.speed * delta, (dy / dist) * enemy.speed * delta);
   }
 
