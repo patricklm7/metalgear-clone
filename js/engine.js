@@ -3,15 +3,22 @@ const ctx = canvas.getContext("2d");
 
 let lastTime = performance.now();
 
-function gameLoop(time){
-  const delta = (time - lastTime) / 1000;
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function gameLoop(time) {
+  const rawDelta = (time - lastTime) / 1000;
+  const delta = clamp(rawDelta, 0, 0.05);
   lastTime = time;
+
   if (typeof update === "function") update(delta);
   if (typeof render === "function") render();
+
   requestAnimationFrame(gameLoop);
 }
 
-function startGame(){
+function startGame() {
   lastTime = performance.now();
   requestAnimationFrame(gameLoop);
 }

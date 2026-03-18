@@ -12,39 +12,29 @@ const player = {
   direction: "down"
 };
 
-function areaHasWall(x, y, w, h){
-  const corners = [
-    {x: x, y: y},
-    {x: x + w - 1, y: y},
-    {x: x, y: y + h - 1},
-    {x: x + w - 1, y: y + h - 1}
-  ];
-  for (let c of corners){
-    if (isWall(c.x, c.y)) return true;
-  }
-  return false;
-}
-
 function updatePlayer(delta) {
   if (player.invuln > 0) player.invuln -= delta;
   if (player.shootCooldown > 0) player.shootCooldown -= delta;
 
-  let nx = player.x;
-  let ny = player.y;
+  let inputX = 0;
+  let inputY = 0;
 
-  const moving =
-    (keys["w"] || keys["arrowup"]) ||
-    (keys["s"] || keys["arrowdown"]) ||
-    (keys["a"] || keys["arrowleft"]) ||
-    (keys["d"] || keys["arrowright"]);
+  if (keys["w"] || keys["arrowup"]) { inputY -= 1; player.direction = "up"; }
+  if (keys["s"] || keys["arrowdown"]) { inputY += 1; player.direction = "down"; }
+  if (keys["a"] || keys["arrowleft"]) { inputX -= 1; player.direction = "left"; }
+  if (keys["d"] || keys["arrowright"]) { inputX += 1; player.direction = "right"; }
 
-  if (keys["w"] || keys["arrowup"]) { ny -= player.speed * delta; player.direction = "up"; }
-  if (keys["s"] || keys["arrowdown"]) { ny += player.speed * delta; player.direction = "down"; }
-  if (keys["a"] || keys["arrowleft"]) { nx -= player.speed * delta; player.direction = "left"; }
-  if (keys["d"] || keys["arrowright"]) { nx += player.speed * delta; player.direction = "right"; }
+  if (inputX !== 0 && inputY !== 0) {
+    const invLen = 1 / Math.sqrt(2);
+    inputX *= invLen;
+    inputY *= invLen;
+  }
 
-  if (!areaHasWall(nx, player.y, player.size, player.size)) player.x = nx;
-  if (!areaHasWall(player.x, ny, player.size, player.size)) player.y = ny;
+  const nx = player.x + inputX * player.speed * delta;
+  const ny = player.y + inputY * player.speed * delta;
+
+  if (!rectHitsWall(nx, player.y, player.size, player.size)) player.x = nx;
+  if (!rectHitsWall(player.x, ny, player.size, player.size)) player.y = ny;
 
   if ((keys[" "] || keys["j"]) && player.shootCooldown <= 0) {
     playerShoot();
@@ -55,16 +45,18 @@ function updatePlayer(delta) {
   if (vidaEl) vidaEl.innerText = "VIDA: " + Math.max(0, Math.floor(player.health));
 }
 
-function playerShoot(){
-  const ex = player.x + player.size/2;
-  const ey = player.y + player.size/2;
+function playerShoot() {
+  const ex = player.x + player.size / 2;
+  const ey = player.y + player.size / 2;
   let vx = 0;
   let vy = 0;
+
   if (player.direction === "up") vy = -1;
   if (player.direction === "down") vy = 1;
   if (player.direction === "left") vx = -1;
   if (player.direction === "right") vx = 1;
   if (vx === 0 && vy === 0) vy = -1;
+
   bullets.push({
     x: ex,
     y: ey,
