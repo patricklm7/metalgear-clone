@@ -10,6 +10,17 @@ const camera = {
   transitionLabel: "TELA 1"
 };
 
+function setScreenTransitionLabel(label) {
+  camera.transitionLabel = label;
+  camera.transitionTimer = camera.transitionDuration;
+}
+
+function resetCameraToPlayer() {
+  camera.screenX = 0;
+  camera.screenY = 0;
+  updateCamera(0);
+}
+
 function updateCamera(delta) {
   const maxX = Math.max(0, getMapPixelWidth() - camera.width);
   const maxY = Math.max(0, getMapPixelHeight() - camera.height);
@@ -22,8 +33,7 @@ function updateCamera(delta) {
   if (nextScreenX !== camera.screenX || nextScreenY !== camera.screenY) {
     camera.screenX = nextScreenX;
     camera.screenY = nextScreenY;
-    camera.transitionTimer = camera.transitionDuration;
-    camera.transitionLabel = `TELA ${camera.screenY * Math.max(1, Math.ceil(getMapPixelWidth() / camera.width)) + camera.screenX + 1}`;
+    setScreenTransitionLabel(`TELA ${camera.screenY * Math.max(1, Math.ceil(getMapPixelWidth() / camera.width)) + camera.screenX + 1}`);
   }
 
   camera.x = clamp(camera.screenX * camera.width, 0, maxX);

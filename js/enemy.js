@@ -8,17 +8,9 @@ const ENEMY_TYPE = {
   DOG: "dog"
 };
 
-const enemies = [
-  createEnemy(200, 200, [{ x: 200, y: 200 }, { x: 500, y: 200 }], { direction: "right" }),
-  createEnemy(700, 320, [{ x: 700, y: 320 }, { x: 700, y: 460 }], { direction: "down" }),
-  createEnemy(420, 500, [{ x: 420, y: 500 }, { x: 620, y: 500 }], { direction: "right" }),
-  createEnemy(900, 120, [{ x: 900, y: 120 }, { x: 1180, y: 120 }], { direction: "right" }),
-  createEnemy(1180, 180, [{ x: 1180, y: 180 }, { x: 1180, y: 420 }], { direction: "down" }),
-  createEnemy(1020, 520, [{ x: 1020, y: 520 }, { x: 1200, y: 520 }], { type: ENEMY_TYPE.DOG, speed: 175, viewDistance: 220, viewWidth: 58, color: "#ff9933", alertColor: "#ff5500", direction: "right" }),
-  createEnemy(1280, 520, [{ x: 1280, y: 520 }, { x: 1280, y: 260 }], { type: ENEMY_TYPE.DOG, speed: 175, viewDistance: 220, viewWidth: 58, color: "#ff9933", alertColor: "#ff5500", direction: "up" })
-];
-
+let enemies = [];
 const bullets = [];
+
 const alertSystem = {
   active: false,
   timer: 0,
@@ -46,6 +38,27 @@ function createEnemy(x, y, patrolPoints, options) {
     color: settings.color || "yellow",
     alertColor: settings.alertColor || "red"
   };
+}
+
+function setupEnemiesForPhase(phaseId) {
+  bullets.length = 0;
+
+  if (phaseId === 1) {
+    enemies = [
+      createEnemy(180, 160, [{ x: 180, y: 160 }, { x: 520, y: 160 }], { direction: "right" }),
+      createEnemy(620, 420, [{ x: 620, y: 420 }, { x: 620, y: 620 }], { direction: "down" }),
+      createEnemy(1150, 180, [{ x: 960, y: 180 }, { x: 1350, y: 180 }], { direction: "right" }),
+      createEnemy(1410, 420, [{ x: 1410, y: 320 }, { x: 1410, y: 560 }], { direction: "down" })
+    ];
+    return;
+  }
+
+  enemies = [
+    createEnemy(250, 260, [{ x: 250, y: 260 }, { x: 540, y: 260 }], { direction: "right" }),
+    createEnemy(180, 500, [{ x: 180, y: 500 }, { x: 180, y: 760 }], { direction: "down" }),
+    createEnemy(360, 120, [{ x: 250, y: 120 }, { x: 560, y: 120 }], { type: ENEMY_TYPE.DOG, speed: 190, viewDistance: 240, viewWidth: 60, color: "#ff9933", alertColor: "#ff5500", direction: "right" }),
+    createEnemy(470, 390, [{ x: 470, y: 390 }, { x: 470, y: 730 }], { type: ENEMY_TYPE.DOG, speed: 190, viewDistance: 240, viewWidth: 60, color: "#ff9933", alertColor: "#ff5500", direction: "down" })
+  ];
 }
 
 function rectsOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
@@ -284,15 +297,21 @@ function setGlobalAlert() {
   });
 }
 
+function resetAlertSystem() {
+  alertSystem.active = false;
+  alertSystem.timer = 0;
+
+  enemies.forEach(enemy => {
+    enemy.state = ALERT_STATE.PATROL;
+    enemy.alerted = false;
+  });
+}
+
 function updateAlertSystem(delta) {
   if (!alertSystem.active) return;
 
   alertSystem.timer -= delta;
   if (alertSystem.timer > 0) return;
 
-  alertSystem.active = false;
-  enemies.forEach(enemy => {
-    enemy.state = ALERT_STATE.PATROL;
-    enemy.alerted = false;
-  });
+  resetAlertSystem();
 }

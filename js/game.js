@@ -1,5 +1,6 @@
 function update(delta) {
   updatePlayer(delta);
+  updatePhaseProgress();
   updateEnemies(delta);
   updateBullets(delta);
   updateAlertSystem(delta);
@@ -24,6 +25,8 @@ function render() {
 function updateHud() {
   const alertaEl = document.getElementById("alerta");
   const missaoEl = document.getElementById("missao");
+  const phase = getCurrentPhaseConfig();
+
   if (alertaEl) {
     if (alertSystem.active) {
       alertaEl.classList.add("alertaAtivo");
@@ -32,9 +35,9 @@ function updateHud() {
     }
   }
 
-  if (missaoEl) {
+  if (missaoEl && phase) {
     const dogsAlive = enemies.filter(enemy => enemy.type === ENEMY_TYPE.DOG).length;
-    missaoEl.innerText = `MISSÃO: INFILTRAR BASE | TELA ${camera.screenY * Math.max(1, Math.ceil(getMapPixelWidth() / camera.width)) + camera.screenX + 1} | CÃES ${dogsAlive}`;
+    missaoEl.innerText = `${phase.title}: ${phase.objective} | CÃES ${dogsAlive}`;
   }
 }
 
@@ -68,4 +71,5 @@ function drawRadar() {
   radar.innerHTML = dots.join("");
 }
 
+initializePhaseState();
 startGame();
